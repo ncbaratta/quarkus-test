@@ -1,8 +1,0 @@
-<productname>{PRODUCTLONGNAME}</productname>
-<productnumber>{PRODUCTVERSION}</productnumber>
-<subtitle>
-</subtitle>
-<abstract>
-	<para>This guide describes how to create a simple Quarkus application with Apache Maven. </para>
-</abstract>
-<xi:include href="Common_Content/Legal_Notice.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
