@@ -1,0 +1,845 @@
+
+include::common/attributes.adoc[]
+
+[id='assembly-quarkus-maven']
+
+= Creating Red Hat Build of Quarkus applications with Apache Maven
+
+:doctype: book
+:imagesdir: _images
+:context: quarkus-mave
+//include::_artifacts/author-group.adoc[]
+
+
+As an application developer, you can use Red Hat Build of Quarkus to create microservices-based applications written in Java that run in serverless and OpenShift environments. These applications have small memory footprints and fast start-up times.
+
+This guide describes how to create a Red Hat Build of Quarkus application using the Apache Maven plug-in.
+
+.Prerequisites
+
+* Java Development Kit (JDK) 11 is installed and the `JAVA_HOME` environment variable specifies the location of the Java SDK.
+
+* Apache Maven 3.5.3 or higher is installed.
+
+
+[id='con-quarkus_{context}']
+
+
+== {ProductLongName}
+
+{ProductLongName} is a full-stack, OpenShift-native Java framework made for Java virtual machines (JVMs). It optimizes Java specifically for containers which enables it to be an effective platform for serverless and OpenShift environments. {ProductName} is designed to work with popular Java standards, frameworks, and libraries such as Eclipse MicroProfile, Apache Kafka, RESTEasy (JAX-RS), Hibernate ORM (JPA), Spring, Infinispan, and Camel.
+
+{ProductName} dependency injection solution is based on CDI (contexts and dependency injection) and includes an extension framework to expand functionality and to configure, boot, and integrate a framework into your application.
+
+{ProductName} provides a container-first approach to building Java applications. This approach makes it much easier to build microservices-based applications written in Java as well as enabling those applications to invoke functions running on serverless computing frameworks. For this reason, {ProductName} applications have small memory footprints and fast start-up times.
+
+
+[id="con-apache-maven-plug-ins-and-quarkus_{context}"]
+
+== Apache Maven plug-ins and Quarkus
+
+Apache Maven is a distributed build automation tool used in Java application development to create, manage, and build software projects. Maven uses standard configuration files called Project Object Model (POM) files to define projects and manage the build process. POM files describe the module and component dependencies, build order, and targets for the resulting project packaging and output using an XML file. This ensures that the project is built in a correct and uniform manner. Maven plug-ins are prefined parts of a POM file that achieve one or more goals. Quarkus applications use the following Maven plug-ins:
+
+* Quarkus Maven plug-in (`quarkus-maven-plugin`): Enables Maven to create Quarkus projects, supports the generation of uber-JAR files, and provides a development mode
+
+* Quarkus bootstrap plug-in (`quarkus-bootstrap-maven-plugin`): Includes the build-tree goal which displays the build dependency tree for the application
+
+* Maven Surefire plug-in (`maven-surefire-plugin): Used during the test phase of the build lifecycle to execute unit tests on your application. The plug-in generates text and XML files that contain the test reports.
+
+* Maven Failsafe plug-in (`maven-failsafe-plugin`): Used during the test phase of the build lifecycle to execute integration tests on your application.
+
+
+[id="con-about-the-red-hat-middleware-enterprise-maven-repository_{context}"]
+
+== The Red Hat Middleware Enterprise Maven repository
+
+COMMENT: What is the official name of the repository? https://access.redhat.com/maven-repository Long and short version.
+
+A Maven repository stores Java libraries, plug-ins, and other build artifacts. The default public repository is the link:https://search.maven.org/#browse[Maven 2 Central Repository], but repositories can be private and internal within a company with a goal to share common artifacts among development teams. Repositories are also available from third-parties.
+
+The Red Hat Middleware Enterprise Maven repository contains many of the requirements that Java EE developers typically use to build their applications. To create your Quarkus project, use maven artifacts that can be downloaded from the Red Hat Customer Portal or accessed online using the The Red Hat Middleware Enterprise Maven repository.
+
+COMMENT: What is the link to download the repo? https://maven.repository.redhat.com/ga/ ?
+
+
+[id="proc-configuring-the-red-hat-middleware-enterprise-maven-repository_{context}"]
+
+=== Configuring the Red Hat Middleware Enterprise Maven repository
+
+After you download and install the Red Hat Middleware Enterprise Maven repository, configure your Maven settings to use the repository in your Quarkus project. This procedure describes how to edit the `settings.xml` file.
+
+NOTE: Configuring the repository using the Maven settings applies across all Maven projects, as long as the project `pom.xml` file does not contain repository configuration.
+
+.Prerequisites
+
+* You have downloaded and installed the Red Hat Middleware Enterprise Maven repository.
+
+.Procedure
+
+. Locate the Maven `settings.xml` file for your operating system. It is usually located in the ${user.home}/.m2/ directory.
+. If you do not find a `settings.xml` file, copy the `settings.xml` file from the ${user.home}/.m2/conf/ directory into the ${user.home}/.m2/ directory.
+. Copy the following XML into the <profiles> element of the `settings.xml` file. Determine the URL of the Red Hat Middleware Enterprise Maven repository and replace JBOSS_EAP_REPOSITORY_URL with it.
++
+COMMENT: Can we use this example if we replace the format of id and url ?
+
++
+[source,xml]
+----
+<!-- Configure the Red Hat Middleware Enterprise Maven repository -->
+<profile>
+  <id>jboss-enterprise-maven-repository</id>
+  <repositories>
+    <repository>
+      <id>jboss-enterprise-maven-repository</id>
+      <url>JBOSS_EAP_REPOSITORY_URL</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>jboss-enterprise-maven-repository</id>
+      <url>JBOSS_EAP_REPOSITORY_URL</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+</profile>
+----
++
+The following is an example configuration that accesses the online Red Hat Middleware Enterprise Maven repository.
++
+[source,xml]
+----
+<!-- Configure the Red Hat Middleware Enterprise Maven repository -->
+<profile>
+  <id>jboss-enterprise-maven-repository</id>
+  <repositories>
+    <repository>
+      <id>jboss-enterprise-maven-repository</id>
+      <url>https://maven.repository.redhat.com/ga/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>jboss-enterprise-maven-repository</id>
+      <url>https://maven.repository.redhat.com/ga/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+</profile>
+----
+. Copy the following XML into the <activeProfiles> element of the `settings.xml` file.
++
+[source,xml]
+----
+<activeProfile>jboss-enterprise-maven-repository</activeProfile>
+----
+
+[IMPORTANT]
+====
+If your Maven repository contains outdated artifacts, you might encounter one of the following Maven error messages when you build or deploy your project:
+
+* Missing artifact ARTIFACT_NAME
+* [ERROR] Failed to execute goal on project PROJECT_NAME; Could not resolve dependencies for PROJECT_NAME
+
+To resolve the issue, delete the cached version of your local repository to force a download of the latest Maven artifacts. The cached repository is located here: ${user.home}/.m2/repository/
+====
+
+COMMENT: Do we want to document how to config the repo using the project pom.xml file?
+
+The repository URL depends on where the repository is located. You can configure Maven to use any of the following repository locations.
+
+* To use the online Red Hat Middleware Enterprise Maven repository, specify the following URL: https://maven.repository.redhat.com/ga/
+* To use a Red Hat Middleware Enterprise Maven repository installed on the local file system, you must download the repository and then use the local file path for the URL. For example: file:///path/to/repo/jboss-eap-7.2.0.GA-maven-repository/maven-repository/
+* If you install the repository on an Apache Web Server, the repository URL will be similar to the following: http://intranet.acme.com/jboss-eap-7.2.0.GA-maven-repository/maven-repository/
+* If you install the repository using the Nexus Repository Manager, the URL will look something like the following: https://intranet.acme.com/nexus/content/repositories/jboss-eap-7.2.0.GA-maven-repository/maven-repository/
+
+COMMENT: Do we want to keep all 4?
+
+
+[id="proc-creating-a-quarkus-project-on-the-command-line_{context}"]
+
+== Creating a Quarkus project on the command line
+
+You can use the Quarkus Maven plug-in on the command line to create a Quarkus project by providing attributes and values on the command line or by using the plug-in in interactive mode. The project will contain the following elements:
+
+** The Maven structure
+** An associated unit test
+** A landing page that is accessible on `\http://localhost:8080` after you start the application
+** Example `Dockerfile` file in `src/main/docker`
+** The application configuration file
+
+.Procedure
+. In a command terminal, enter the following command to verify that Maven is using JDK 11:
++
+[source,bash]
+----
+mvn --version
+----
+
+. If the preceding command does not return JDK 11, add the path to JDK 11 to the PATH environment variable and enter the preceding command again.
+
+. To use the Quarkus Maven plug-in to create a new project, use one of the following methods:
+* Enter the following command where `<CLASSNAME>`is the fully qualified name of the generated resource:
++
+[source,bash]
+----
+mvn io.quarkus:quarkus-maven-plugin:{quarkus-version}:create
+    -DprojectGroupId=com.redhat.quarkus
+    -DprojectArtifactId=plaform.universe-bom
+    -DclassName="<CLASSNAME>"
+----
+//  -DprojectVersion=<VERSION> to add later if required
++
+//`<VERSION>`: The version of your project
+
+* Create the project in interactive mode:
++
+.. Enter the following command :
++
+[source,bash]
+----
+mvn io.quarkus:quarkus-maven-plugin:{quarkus-version}:create
+----
+
+.. When prompted, enter the required attribute values.
++
+[NOTE]
+====
+Alternatively, you can create your project using the default values for the project attributes by entering the following command:
+
+----
+mvn io.quarkus:quarkus-maven-plugin:{quarkus-version}:create -B
+----
+====
++
+The following table lists the attributes that you can define with the `create` command:
++
+[cols=3*,options="header"]
+|===
+| Attribute
+| Default Value
+| Description
+
+| `projectGroupId`
+| `org.acme.sample`
+| A unique identifier of your project.
+
+| `projectArtifactId`
+| _mandatory_
+| The name of your project and your project directory. If you do not specify the `projectArtifactId`, the Maven plugin starts the interactive mode. If the directory already exists, the generation fails.
+
+| `projectVersion`
+| `1.0-SNAPSHOT`
+| The version of your project.
+
+| `platformGroupId`
+| `io.quarkus`
+| The group id of your platform. All the existing platforms are coming from `io.quarkus`. However, you can change the default value.
+
+| `platformArtifactId`
+| `quarkus-universe-bom`
+| The artifact id of your platform BOM. To use the locally built Quarkus add `quarkus-bom` to your `pom.xml` file.
+
+| `platformVersion`
+| The Maven plugin uses the latest version by default.
+| The version of the platform you want to use for your project. You can provide a version range and the Maven plugin uses the latest version.
+
+| `className`
+| _None_
+| The fully qualified name of the generated resource. After the application is created, the REST endpoint is exposed at the following URL `http://localhost:8080/$path`. If you use the default `path`, the URL is: http://localhost:8080/hello.
+
+| `path`
+| `/hello`
+| The resource path, only if you set the `className`.
+
+| `extensions`
+| _[]_
+| The list of extensions you want to add to your project separated by comma.
+|===
+
+
+NOTE: By default, the Quarkus Maven plug-in uses the latest `quarkus-universe-bom` file. This BOM aggregates extensions so you can reference them from you applications to align the dependency versions.  If you are offline, The Quarkus Maven plug-in uses the latest locally available version of the `quarkus-universe-bom`. If Maven finds the `quarkus-universe-bom` version 2.0 or earlier, it will use the platform based on the `quarkus-bom`.
+
+
+[id="proc-creating-a-quarkus-project-by-configuring-the-pom-xml-file_{context}"]
+
+== Creating a Quarkus project by configuring the `pom.xml` file.
+
+You can create a Quarkus project by configuring the Maven POM XML file.
+
+.Procedure
+. Open the `pom.xml` file in a text editor.
+
+. Add the Quarkus GAV (group, artifact, version) and use the `quarkus-bom` file to omit the version of the different Quarkus dependencies.
+COMMENT: Max, should this be the quarkus-universe-bom here and in the example below?
+
+[source,xml,subs=attributes+]
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-bom</artifactId>
+            <version>${quarkus.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+----
+COMMENT: Max to provide instructions on how to set {quarkus.version}.
+
+. Add the Quarkus Maven plug-in:
+
++
+[source,xml,subs=attributes+]
+----
+<build>
+    <plugins>
+        <plugin>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-maven-plugin</artifactId>
+            <version>${quarkus.version}</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>build</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+----
+
+//. Optional: To build a native application, add a specific native profile that includes the Maven Surefire and Maven Failsafe plug-ins and enable the `native` package type:
+//+
+//[IMPORTANT]
+//====
+//Quarkus native excutables are for Technology Preview only. Technology Preview features are not supported with Red Hat production service level agreements (SLAs), might not be functionally complete, and Red Hat does not recommend to use them for production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+
+//For more information on Red Hat Technology Preview features, see https://access.redhat.com/support/offerings/techpreview/[Technology Preview Features Scope].
+//====
+//+
+//[source,xml,subs=attributes+]
+//----
+//<profiles>
+//    <profile>
+//        <id>native</id>
+//        <properties>
+//            <quarkus.package.type>native</quarkus.package.type>
+//        </properties>
+//        <build>
+//            <plugins>
+//                <plugin>
+//                    <groupId>org.apache.maven.plugins</groupId>
+//                    <artifactId>maven-failsafe-plugin</artifactId>
+//                    <version>${surefire-plugin.version}</version>
+//                    <executions>
+//                        <execution>
+//                            <goals>
+//                                <goal>integration-test</goal>
+//                                <goal>verify</goal>
+//                            </goals>
+//                            <configuration>
+//                                <systemProperties>
+//                                    <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+//                                </systemProperties>
+//                            </configuration>
+//                        </execution>
+//                    </executions>
+//                </plugin>
+//            </plugins>
+//        </build>
+//    </profile>
+//</profiles>
+//----
+//+
+//Tests that include `IT` in their names are annotated `@NativeImageTest` are run against the native executable.
+
+
+
+[id="con-configuring-profiles_{context}"]
+
+== Configuring profiles
+
+
+COMMENT: Max to provide a better example.
+
+By default, the Quarkus Maven plug-in passes compiler flags to the `javac` command from the `maven-compiler-plugin` plug-in.
+
+To customize the compiler flags used in development mode, add a `configuration` section to the `plugin` block and set the `compilerArgs` property. You can also set `source`, `target`, and `jvmArgs`.  For example, to pass `--enable-preview` to both the JVM and `javac`:
+
+[source,xml]
+----
+<plugin>
+  <groupId>io.quarkus</groupId>
+  <artifactId>quarkus-maven-plugin</artifactId>
+  <version>${quarkus.version}</version>
+
+  <configuration>
+    <source>${maven.compiler.source}</source>
+    <target>${maven.compiler.target}</target>
+    <compilerArgs>
+      <arg>--enable-preview</arg>
+    </compilerArgs>
+    <jvmArgs>--enable-preview</jvmArgs>
+  </configuration>
+
+  ...
+</plugin>
+----
+
+
+[id="proc-installing-and-managing-java-extensions-with-quarkus-applications_{context}"]
+
+== Installing and managing Java extensions with Quarkus applications
+
+You can use Java extensions to expand the functionality of your application and to configure, boot, and integrate a framework into your application. This procedure show you how to find and add extensions to your Quarkus project.
+
+.Prerequisites
+* You have a Quarkus project.
+
+.Procedure
+
+. Navigate to your Quarkus project directory.
+. To list the available extensions, enter the following command:
++
+[source,bash]
+----
+./mvnw quarkus:list-extensions
+----
+COMMENT: Thomas, do we have a list of supported extensions for the first release? Can we include a list of supported extensions? Will there be a public knowledge base with this list, that we can link to?
+
+. To add an extension to your project, enter the following command where <EXTENSION> is the GAV (group, artifact, version) of the extension that you want to add:
++
+[source,bash]
+----
+./mvnw quarkus:add-extension -Dextensions="<EXTENSION>"
+----
++
+For example, to add the Agroal extension,enter the following command:
++
+[source,bash]
+----
+./mvnw quarkus:add-extension -Dextensions="io.quarkus:quarkus-agroal"
+----
++
+. To search for a specific extension, enter the extension name or partial name after `-Dextensions`. The following example searches for extensions that contain the text `jdbc`, `agroal`, and `,non-exist-ent` in the name.
++
+[source,bash]
+----
+./mvnw quarkus:add-extension -Dextensions=jdbc,agroal,non-exist-ent
+----
++
+This command returns the following result:
++
+[source]
+----
+./mvnw quarkus:add-extensions -Dextensions=jdbc,agroal,non-exist-ent
+[...]
+❌ Multiple extensions matching 'jdbc'
+    * io.quarkus:quarkus-jdbc-h2
+    * io.quarkus:quarkus-jdbc-mariadb
+    * io.quarkus:quarkus-jdbc-postgresql
+    Be more specific e.g using the exact name or the full gav.
+✅ Adding extension io.quarkus:quarkus-agroal
+❌ Cannot find a dependency matching 'non-exist-ent', maybe a typo?
+[...]
+----
+. To install all extensions that a specific text string, enter the extension name or partial name after `-Dextensions`. The following example searches for and installs all extensions that begin with `hibernate-`:
++
+[source]
+----
+./mvnw quarkus:add-extension -Dextensions="hibernate-*"
+----
+
+
+
+//include::modules/proc-creating-an-uber-jar-file.adoc[leveloffset=+2]
+COMMENT: Thomas, Max suggests that we do not include the section on uber-jar so I have removed.
+
+
+
+[id="proc-importing-your-quarkus-project-into-an-ide_{context}"]
+
+== Importing your Quarkus project into an IDE
+
+Although it is possible to develop your Quarkus project in a text editor, you might find it easier to use an IDE to work on your project. The following instructions show you how to import your Quarkus project into specific IDEs.
+
+.Prerequisites
+* You have a Quarkus project.
+
+.Procedure
+
+* Import into CodeReady Studio or Eclipse:
+
+. In CodeReady or Eclipse, click `File -> Import`.
+. Select `Maven -> Existing Maven Project`.
+. On the next screen, select the root location of the project. A lists the found modules appears.
+. Select the generated project and click `Finish`.
+. To start your application, enter the following command in a new terminal window:
++
+[source]
+----
+./mvnw compile quarkus:dev
+----
+
+* Import into IntelliJ:
++
+COMMENT: Thomas, QE has indicated that they will not have capcity to test IntelliJ. Should we remove this section from the guide?
+
+. In IntelliJ select `File -> New -> Project From Existing Sources...` or, if you are on the welcome dialog, select `Import project`.
+. Select the project root directory.
+. Select `Import project from external model` and `Maven`.
+. Next a few times (review the different options if needed).
+. On the next screen click `Finish`.
++
+COMMENT: step 4 - is "Next" a button? need to check it
+
+. To start your application, enter the following command in a new terminal window:
++
+[source]
+----
+./mvnw compile quarkus:dev
+----
+
+* Import into Apache NetBeans:
+
+. Select `File -> Open Project`.
+. Select the project root directory.
+. Click `Open Project`.
+. To start your application, enter the following command in a new terminal window:
++
+[source]
+----
+./mvnw compile quarkus:dev
+----
+
+* Import into Visual Studio Code:
+. Install the Java Extension Pack.
+. Open your project directory in VS Code. The project loads as a Maven project.
+
+
+
+[id="proc-configuring-the-project-output_{context}"]
+
+== Configuring the Quarkus project output
+
+Before you build your application, you can change the default values of application properties to control the output of the  build command.
+
+.Prerequisites
+* You have a Quarkus project.
+
+.Procedure
+
+. Open the `application.properties` file in a text editor.
+
+. Edit the values of properties that you want to change and save the file.
++
+The following table list the properties that you can change:
++
+[cols=4,options="header"]
+|===
+| Property
+| Description
+| Type
+| Default
+
+| `quarkus.package.type`
+| The requested output type. The default built-in type is JAR.
+| string
+| `jar`
+
+
+| `quarkus.package.uber-jar`
+| Whether or not the Java runner should be packed as an uber-JAR.
+| boolean
+| `false`
+
+
+| `quarkus.package.manifest.add-implementation-entries`
+| Whether or not the implementation information should be included in the runner JAR file's `MANIFEST.MF` file.
+| boolean
+| `true`
+
+| `quarkus.package.main-class`
+| The entry point of the application. In most cases, you should change this value.
+| string
+| `io.quarkus.runner.GeneratedMain`
+
+| `quarkus.package.user-configured-ignored-entries`
+| Files that should not be copied to the output artifact.
+| sting (list)
+|
+
+| `quarkus.package.runner-suffix`
+| The suffix that is applied to the runner JAR file.
+| string
+| `-runner`
+
+| `quarkus.package.output-directory`
+| The output folder for the application build. This is resolved relative to the build system target directory.
+| string
+|
+
+| `quarkus.package.output-name`
+|  The name of the final artifact.
+| string
+|
+
+|===
+
+
+[id="proc-testing-your-quarkus-application-in-jvm-mode_{context}"]
+
+== Testing your Quarkus application
+
+By default, when you test your Quarkus application, Maven uses the `test` configuration profile. However, you can create a custom configuration profile for your tests using the Maven Surefire and Maven Failsafe plug-ins.
+
+.Prerequisites
+
+* You have a Quarkus project created with Apache Maven.
+
+.Procedure
+
+* Edit the following example to meet your testing requirements:
++
+[source,xml,subs=attributes+]
+----
+<project>
+  [...]
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire-plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <quarkus.test.profile><PROFILE_NAME></quarkus.test.profile> <1>
+            <buildDirectory>${project.build.directory}</buildDirectory>
+            [...]
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${failsafe-plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <quarkus.test.profile><PROFILE_NAME></quarkus.test.profile> <1>
+            <buildDirectory>${project.build.directory}</buildDirectory>
+            [...]
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  [...]
+</project>
+----
+
+//NOTE: It is not possible to use a custom test configuration profile in native mode. Native tests are always run using the `prod` profile.
+
+:leveloffset!:
+
+//== Quarkus Native executables
+//include::modules/proc-building-and-testing-a-native-executable.adoc[leveloffset=+2]
+
+//include::modules/proc-building-a-native-container-executable.adoc[leveloffset=+2]
+
+
+[id="proc-logging-the-quarkus-application-build-classpath-tree_{context}"]
+
+== Logging the Quarkus application build classpath tree
+
+The Quarkus build process adds deployment dependencies of the extensions that you use in the application to the original application classpath. You can see which dependencies and versions are included on the build classpath. The `quarkus-bootstrap` Maven plugin includes the `build-tree` goal which displays the build dependency tree for the application.
+
+.Prerequisites
+
+* You have a Quarkus application.
+
+.Procedure
+
+. Add the plugin configuration to the `pom.xml` file:
++
+[source,xml,subs=attributes+]
+----
+<project>
+    [...]
+      <plugin>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-bootstrap-maven-plugin</artifactId>
+          <version>${quarkus.version}</version>
+      </plugin>
+    [...]
+</project>
+----
+
+. List the build dependency tree of your application with the following command:
++
+[source]
+----
+./mvnw quarkus-bootstrap:build-tree
+----
+. The output of this command should be similar to the following example:
++
+[source,shell,subs=attributes+]
+----
+[INFO] --- quarkus-bootstrap-maven-plugin:{quarkus-version}:build-tree (default-cli) @ getting-started ---
+[INFO] org.acme:getting-started:jar:1.0-SNAPSHOT
+[INFO] └─ io.quarkus:quarkus-resteasy-deployment:jar:{quarkus-version} (compile)
+[INFO]    ├─ io.quarkus:quarkus-resteasy-server-common-deployment:jar:{quarkus-version} (compile)
+[INFO]    │  ├─ io.quarkus:quarkus-core-deployment:jar:{quarkus-version} (compile)
+[INFO]    │  │  ├─ commons-beanutils:commons-beanutils:jar:1.9.3 (compile)
+[INFO]    │  │  │  ├─ commons-logging:commons-logging:jar:1.2 (compile)
+[INFO]    │  │  │  └─ commons-collections:commons-collections:jar:3.2.2 (compile)
+...
+----
+
+NOTE: `mvn dependency:tree` command displays only the runtime dependencies of your application
+
+
+[id='proc-quarkus-dev-mode_{context}']
+
+
+== Using {ProductLongName} development mode
+
+Development mode enables hot deployment with background compilation, which means that when you modify your Java files or your resource files and then refresh your browser, the changes automatically take effect. This also works for resource files such as the configuration property file.
+
+.Prerequisites
+* You have a {ProductName} application.
+
+.Procedure
+. To start {ProductName} in development mode, enter the following command in the directory that contains your Quarkus application `pom.xml` file.
++
+[source]
+----
+quarkus:dev
+----
++
+. Make changes to your application and save the files.
+
+. Refresh the browser to trigger a scan of the work space.
++
+If any changes are detected, the Java files are recompiled and the application is redeployed. Your request is then serviced by the redeployed application. If there are any issues with compilation or deployment, an error page appears.
++
+In development mode, the debugger is activated and listens on port `5005`.
+. Optional: To wait for the debugger to attach before running the application, include `-Dsuspend`:
++
+[source]
+----
+quarkus:dev -Dsuspend
+----
+. Optional: To prevent the debugger from running, include `-Ddebug=false`:
++
+[source]
+----
+quarkus:dev Ddebug=false
+----
+
+
+[id="proc-using-development-mode-remotely_{context}"]
+
+=== Using development mode remotely
+
+If your Quarkus application is hosted in a container environment, for example {OPENSHIFT}, You can run it development mode remotely. Remote development mode enables you to develop your application in the environment where it runs and with access to the same services.
+
+.Prerequisites
+
+* You have a Quarkus application hosted in a container such as {OpenShift}.
+
+.Procedure
+
+. To install the `quarkus-undertow-websockets` extension, enter the following command:
++
+[source,bash]
+----
+./mvnw quarkus:add-extension -Dextensions="undertow-websockets"
+----
+
+. Specify the value of the `quarkus.live-reload.password` configuration property in the `application.properties` file on the local and remote hosts:
++
+[source]
+----
+`quarkus.live-reload.password`
+----
+
+. Specify the value of the `quarkus.live-reload.url` configuration property in the `application.properties` file on the local host:
++
+[source]
+----
+`quarkus.live-reload.password`
+----
+
+. To start your Quarkus application in development mode on the remote host and connect your local agent to the remote host, enter the following command:
++
+[source,bash]
+----
+./mvnw quarkus:remote-dev -Dquarkus.live-reload.url=http://my-remote-host:8080
+----
+
+. Make changes to your application locally and refresh your browser to see the changes in your remote application.
+
+
+WARNING: Do not use development mode in production environments.
+
+
+[id="proc-debugging-your-quarkus-project_{context}"]
+
+== Debugging your Quarkus project
+
+When Quarkus starts in development mode, debugging is enabled by default. The debugger listens on port `5005` without suspending the JVM. You can make changes to
+
+.Prerequisites
+
+* You have a Quarkus project created with Maven.
+
+.Procedure
+
+. Control the debugger through system properties:
++
+* Change the value of the `debug` system property:
+
+** `false`: The JVM starts with debug mode disabled
+** `true`:: The JVM starts in debug mode and is listening on port `5005`
+** `client`:: The JVM starts in client mode and tries to connect to `localhost:5005`
+** `{port}`:: The JVM starts in debug mode and is listening on `{port}`
+
+* Change the value of the `suspend` system property:
+
+** `y` or `true`:: The debug mode JVM launch suspends
+** `n` or `false`:: The debug mode JVM starts without suspending
+
+. Control the debugger from the command line:
+.. Enter the following command to start your Quarkus application in debug mode with JVM ** :
++
+[source]
+----
+./mvnw compile quarkus:dev -Ddebug
+----
+
+.. Attach a debugger to `localhost:5005`.

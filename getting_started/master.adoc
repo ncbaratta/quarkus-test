@@ -1,0 +1,609 @@
+[id='assembly-quarkus-getting-started']
+
+// AsciiDoc settings
+:data-uri!:
+:doctype: book
+:experimental:
+:idprefix:
+:imagesdir: images
+:numbered:
+:sectanchors!:
+:sectnums:
+:sectlinks:
+:source-highlighter: highlightjs
+:toc: left
+:linkattrs:
+:toclevels: 3
+
+// Name placeholders
+:ProductLongName: Red Hat build of Quarkus
+:ProductName: Quarkus
+:ContextProduct: quarkus
+:ProductVersion: 1.3
+:MavenVersion: 5.3
+:JDKVersion: 11
+
+= Getting started with {ProductLONGNAME}
+
+:doctype: book
+:imagesdir: _images
+:context: quarkus-getting-started
+//include::_artifacts/author-group.adoc[]
+
+
+This guide describes how to create and test a simple application project with Red Hat Build of Quarkus.
+
+As an application developer, you can use Red Hat Build of Quarkus to create microservices-based applications written in Java that run in serverless and OpenShift environments. These applications have small memory footprints and fast start-up times.
+
+In this guide, you will create, test, package, and run a simple Quarkus project that uses a `hello` endpoint. To demonstrate dependency injection, this endpoint uses a `greeting` bean.
+
+//image::getting-started-architecture.png[alt=Architecture]
+
+.Prerequisites
+
+* Java Development Kit (JDK)11 is installed and the `JAVA_HOME` environment variable specifies the location of the Java SDK.
+
+* Apache Maven 3.5.3 or higher is installed.
+
+NOTE: For a completed example of the getting started exercise, download the https://github.com/quarkusio/quarkus-quickstarts/archive/master.zip[Quarkus quickstart archive] or clone the `Quarkus Quickstarts` Git repository. The Getting Started example is in the `getting-started` directory.
+
+:leveloffset: +1
+
+[id='con-quarkus_{context}']
+
+
+= {ProductLongName}
+
+{ProductLongName} is a full-stack, OpenShift-native Java framework made for Java virtual machines (JVMs). It optimizes Java specifically for containers which enables it to be an effective platform for serverless and OpenShift environments. {ProductName} is designed to work with popular Java standards, frameworks, and libraries such as Eclipse MicroProfile, Apache Kafka, RESTEasy (JAX-RS), Hibernate ORM (JPA), Spring, Infinispan, and Camel.
+
+{ProductName} dependency injection solution is based on CDI (contexts and dependency injection) and includes an extension framework to expand functionality and to configure, boot, and integrate a framework into your application.
+
+{ProductName} provides a container-first approach to building Java applications. This approach makes it much easier to build microservices-based applications written in Java as well as enabling those applications to invoke functions running on serverless computing frameworks. For this reason, {ProductName} applications have small memory footprints and fast start-up times.
+
+:leveloffset!:
+
+con_apache-maven-plug-ins-and-quarkus
+
+
+:leveloffset: +1
+
+[id="con-apache-maven-plug-ins-and-quarkus_{context}"]
+
+= Apache Maven plug-ins and Quarkus
+
+Apache Maven is a distributed build automation tool used in Java application development to create, manage, and build software projects. Maven uses standard configuration files called Project Object Model (POM) files to define projects and manage the build process. POM files describe the module and component dependencies, build order, and targets for the resulting project packaging and output using an XML file. This ensures that the project is built in a correct and uniform manner. Maven plug-ins are prefined parts of a POM file that achieve one or more goals. Quarkus applications use the following Maven plug-ins:
+
+* Quarkus Maven plug-in (`quarkus-maven-plugin`): Enables Maven to create Quarkus projects, supports the generation of uber-JAR files, and provides a development mode
+
+* Quarkus bootstrap plug-in (`quarkus-bootstrap-maven-plugin`): Includes the build-tree goal which displays the build dependency tree for the application
+
+* Maven Surefire plug-in (`maven-surefire-plugin): Used during the test phase of the build lifecycle to execute unit tests on your application. The plug-in generates text and XML files that contain the test reports.
+
+* Maven Failsafe plug-in (`maven-failsafe-plugin`): Used during the test phase of the build lifecycle to execute integration tests on your application.
+
+:leveloffset!:
+
+:leveloffset: +1
+
+[id='proc-quarkus-creating-proj_{context}']
+
+
+= Creating the Getting Started project
+
+To get you up and running with Red Hat Build of Quarkus, download Quarkus and create the `getting-started` project.
+
+COMMENT: Need to add instructions for configuring the Maven settings.xml file.
+
+.Procedure
+. Download {ProductLongName}.
+//TODO add the location of the product download.
+
+. In a command terminal, enter the following command in a to verify that Maven is using JDK {JDKVersion}:
++
+[source]
+----
+mvn --version
+----
+
+. If the preceding command does not return JDK {JDKVersion}, add the path to JDK {JDKVersion} to the PATH environment variable and enter the preceding command again.
+
+. To install the Maven plugin, enter one of the following commands:
++
+* If you are using Linux or the Apple macOS, enter the following command:
+//TODO: Update artifact with product artifact version.
++
+[source,shell,subs=attributes+]
+----
+mvn io.quarkus:{MavenPlugin}:create \
+    -DprojectGroupId=org.acme \
+    -DprojectArtifactId=getting-started \
+    -DclassName="org.acme.quickstart.GreetingResource" \
+    -Dpath="/hello"
+cd getting-started
+----
+* If you are using the Microsoft Windows command line, enter the following command:
++
+[source,shell,subs=attributes+]
+----
+mvn io.quarkus:{MavenPlugin}:create -DprojectGroupId=org.acme -DprojectArtifactId=getting-started -DclassName="org.acme.quickstart.GreetingResource" -Dpath="/hello"
+----
+
+* If you are using the Microsoft Windows Powershell, enter the following command:
++
+[source,shell,subs=attributes+]
+----
+mvn io.quarkus:{MavenPlugin}:create "-DprojectGroupId=org.acme" "-DprojectArtifactId=getting-started" "-DclassName=org.acme.quickstart.GreetingResource" "-Dpath=/hello"
+----
++
+These commands create the following elements in the  `./getting-started` directory:
++
+** The Maven structure
+** An `org.acme.quickstart.GreetingResource` resource exposed on `/hello`
+** An associated unit test
+** A landing page that is accessible on `\http://localhost:8080` after you start the application
+** Example `Dockerfile` file in `src/main/docker`
+** The application configuration file
+
+. After the directory structure is created, open the `pom.xml` file in a text editor and examine the contents of the file:
+
++
+[source,xml,subs=attributes+]
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-bom</artifactId>
+            <version>${quarkus.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-maven-plugin</artifactId>
+            <version>${quarkus.version}</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>build</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+----
++
+The Quarkus BOM is imported into the `pom.xml` file. Therefore, you do not need to list the versions of individual Quarkus dependencies in the `pom.xml` file.
++
+In addition, you can see the `quarkus-maven-plugin` plugin that is responsible for packaging the application and providing the development mode.
+. Review the `quarkus-resteasy` dependency in the `pom.xml` file. This dependency enables you to develop REST applications:
++
+[source,xml]
+----
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-resteasy</artifactId>
+    </dependency>
+----
+. Review the `src/main/java/org/acme/quickstart/GreetingResource.java` file:
++
+[source,java]
+----
+package org.acme.quickstart;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+@Path("/hello")
+public class GreetingResource {
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String hello() {
+        return "hello";
+    }
+}
+----
++
+This file contains the Java API for RESTful Web Services (JAX-RS) and a very simple REST endpoint that returns `hello` to requests on `/hello`.
++
+[NOTE]
+====
+With Quarkus, the `Application` class for JAX-RS is supported but not required. In addition, only one instance of the `GreetingResource` class is created and not one per request. You can configure this instance by using the different `*Scoped` annotations, for example `ApplicationScoped`, `RequestScoped`, and so forth.
+====
+
+:leveloffset!:
+
+:leveloffset: +1
+
+[id='proc-quarkus-compiling-project_{context}']
+
+
+= Compiling the Quarkus Getting Started project
+
+After you have created the Quarkus Getting Started project, you can compile the Hello application and verify that the `hello` endpoint returns `hello`.
+
+This example uses the Quarkus built-in development mode. In development mode, you can update the application sources, resources, and configurations while your application is running. Your changes will appear in the running application.
+
+.Prerequisites
+* You have created the Quarkus Getting Started Project.
+
+.Procedure
+. To compile the Quarkus Hello application in development mode, enter the following command:
++
+[source]
+----
+./mvnw compile quarkus:dev
+----
++
+The following example shows the output of this command:
++
+[source,shell]
+----
+[INFO] --------------------< org.acme:getting-started >---------------------
+[INFO] Building getting-started 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ getting-started ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/starksm/Dev/JBoss/Quarkus/starksm64-quarkus-quickstarts/getting-started/src/main/resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ getting-started ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 2 source files to /Users/starksm/Dev/JBoss/Quarkus/starksm64-quarkus-quickstarts/getting-started/target/classes
+[INFO]
+[INFO] --- quarkus-maven-plugin:<version>:dev (default-cli) @ getting-started ---
+Listening for transport dt_socket at address: 5005
+2019-02-28 17:05:22,347 INFO  [io.qua.dep.QuarkusAugmentor] (main) Beginning quarkus augmentation
+2019-02-28 17:05:22,635 INFO  [io.qua.dep.QuarkusAugmentor] (main) Quarkus augmentation completed in 288ms
+2019-02-28 17:05:22,770 INFO  [io.quarkus] (main) Quarkus started in 0.668s. Listening on: http://localhost:8080
+2019-02-28 17:05:22,771 INFO  [io.quarkus] (main) Installed features: [cdi, resteasy]
+----
+. To request the provided endpoint, enter the following command:
++
+[source]
+----
+$ curl -w "\n" http://localhost:8080/hello
+hello
+----
++
+[NOTE]
+====
+This example uses the `"\n"` attribute to automatically add a new line before the output of the command. This prevents your terminal from printing a '%' character or putting both the result and the next command prompt on the same line.
+====
+. To stop the application, press *CTRL+C*.
+
+:leveloffset!:
+
+:leveloffset: +1
+
+[id='proc-quarkus-dependency-injection_{context}']
+
+
+= Using {ProductName} dependency injection
+Dependency injection enables a service to be used in a way that is completely independent of any client consumption. It separates the creation of client dependencies from the client’s behavior, which enables program designs to be loosely coupled.
+
+Dependency injection in {ProductLongName} is based on {ProductName} ArC which is a CDI-based build-time oriented dependency injection solution tailored for {ProductName} architecture.
+
+ArC is included in the `quarkus-resteasy` dependency in the `pom.xml` file that you downloaded when you created the {ProductName} project.
+
+.Procedure
+. To modify the application and add a companion bean, create the `src/main/java/org/acme/quickstart/GreetingService.java` file with the following content:
++
+[source, java]
+----
+package org.acme.quickstart;
+
+import javax.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
+public class GreetingService {
+
+    public String greeting(String name) {
+        return "hello " + name;
+    }
+
+}
+----
+
+. Edit the `src/main/java/org/acme/quickstart/GreetingResource.java` to file inject the `GreetingService` and create a new endpoint using it:
++
+[source, java]
+----
+package org.acme.quickstart;
+
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import org.jboss.resteasy.annotations.jaxrs.PathParam;
+
+@Path("/hello")
+public class GreetingResource {
+
+    @Inject
+    GreetingService service;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/greeting/{name}")
+    public String greeting(@PathParam String name) {
+        return service.greeting(name);
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String hello() {
+        return "hello";
+    }
+}
+----
+
+. If you stopped the application, enter the following command to restart it:
++
+[source]
+----
+./mvnw compile quarkus:dev
+----
+. Verify that the endpoint returns `hello quarkus` as expected:
++
+[source,shell,subs=attributes+]
+----
+$ curl -w "\n" http://localhost:8080/hello/greeting/quarkus
+hello quarkus
+----
+
+:leveloffset!:
+
+:leveloffset: +1
+
+[id='proc-quarkus-dev-mode_{context}']
+
+
+= Using {ProductLongName} development mode
+
+Development mode enables hot deployment with background compilation, which means that when you modify your Java files or your resource files and then refresh your browser, the changes automatically take effect. This also works for resource files such as the configuration property file.
+
+.Prerequisites
+* You have a {ProductName} application.
+
+.Procedure
+. To start {ProductName} in development mode, enter the following command in the directory that contains your Quarkus application `pom.xml` file.
++
+[source]
+----
+quarkus:dev
+----
++
+. Make changes to your application and save the files.
+
+. Refresh the browser to trigger a scan of the work space.
++
+If any changes are detected, the Java files are recompiled and the application is redeployed. Your request is then serviced by the redeployed application. If there are any issues with compilation or deployment, an error page appears.
++
+In development mode, the debugger is activated and listens on port `5005`.
+. Optional: To wait for the debugger to attach before running the application, include `-Dsuspend`:
++
+[source]
+----
+quarkus:dev -Dsuspend
+----
+. Optional: To prevent the debugger from running, include `-Ddebug=false`:
++
+[source]
+----
+quarkus:dev Ddebug=false
+----
+
+:leveloffset!:
+
+:leveloffset: +1
+
+[id='proc-quarkus-junit-testing_{context}']
+
+
+= Testing your {ProductName} application with JUnit
+
+After you create your {ProductLongName} application, test it with the JUnit 5 framework to ensure that it runs as expected. There are two test dependencies in the {ProductName} project generated `pom.xml` file:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-junit5</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>io.rest-assured</groupId>
+    <artifactId>rest-assured</artifactId>
+    <scope>test</scope>
+</dependency>
+----
+
+The `quarkus-junit5` dependency is required for testing because it provides the `@QuarkusTest` annotation that controls the JUnit 5 testing framework. The `rest-assured` dependency is not required but because it provides a convenient way to test HTTP endpoints, it is integrated as well. It automatically sets the correct URL so no configuration is required.
+
+
+
+.Prerequisites
+* You have a {ProductName} application.
+
+.Procedure
+. Set the version of the Surefire Maven plugin:
+
++
+[source,xml,subs=attributes+]
+----
+<plugin>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>${surefire-plugin.version}</version>
+    <configuration>
+       <systemProperties>
+          <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+       </systemProperties>
+    </configuration>
+</plugin>
+----
++
+The default Surefire Maven plugin version does not support JUnit 5.
+. Set the `java.util.logging` system property to make sure tests use the correct log manager.
++
+COMMENT: Can I have an example, and how do I know what the correct log manager version is?
+
+. Edit the `src/test/java/org/acme/quickstart/GreetingResourceTest.java` file to match the following content:
++
+[source,java]
+----
+package org.acme.quickstart;
+
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
+
+@QuarkusTest
+public class GreetingResourceTest {
+
+    @Test    //
+    public void testHelloEndpoint() {
+        given()
+          .when().get("/hello")
+          .then()
+             .statusCode(200)    //
+             .body(is("hello"));
+    }
+
+    @Test
+    public void testGreetingEndpoint() {
+        String uuid = UUID.randomUUID().toString();
+        given()
+          .pathParam("name", uuid)
+          .when().get("/hello/greeting/{name}")
+          .then()
+            .statusCode(200)
+            .body(is("hello " + uuid));
+    }
+
+}
+----
++
+Note By using the `QuarkusTest` runner, you instruct JUnit to start the application before starting the tests.
+. Verify that the value of `statusCode` is `200`.
++
+. Verify that `body` contains `"hello"`
++
+NOTE: These tests use the REST-assured framework, but you can use a different library if you prefer.
+. To run these tests from Maven, enter the following command:
++
+[source,shell,subs=attributes+]
+----
+./mvnw test
+----
++
+NOTE: You can also run the test from your IDE. If you do this, make sure to stop the application first.
++
+By default, tests run on port `8081` so they do not conflict with the running application. In {ProductName}, the `RestAssured` dependency is configured to use this port. If you want to use a different client, use the `@TestHTTPResource` annotation to directly inject the URL of the test into a field on the test class. This field can be of the type
+`string`, `URL` or `URI`. You can also provide a the test path in this annotation. For example, to test
+a servlet mapped to `/myservlet`, add the following line to your test:
++
+[source,java]
+----
+@TestHTTPResource("/myservlet")
+URL testUrl;
+----
+. If necessary, specify the test port in the `quarkus.http.test-port` configuration property.
+
+NOTE: {ProductName} also creates a system
+property called `test.url` that is set to the base test URL for situations where you cannot use injection.
+
+:leveloffset!:
+
+:leveloffset: +1
+
+[id='proc-quarkus-packaging_{context}']
+
+
+= Packaging and running {ProductName} Getting Started application
+After you create and run your {ProductLongName} Getting Started project, you can package it in a JAR file and run it from the command line.
+
+.Prerequisites
+* You have created and tested the Getting Started project
+
+.Procedure
+. To package your {ProductName} Getting Started project, enter the following command in the `root` directory:
++
+[source]
+----
+./mvnw package
+----
++
+This command produces the following JAR files in the `/target` directory:
++
+* `getting-started-1.0-SNAPSHOT.jar`: Contains the classes and resources of the projects. This is the regular
+artifact produced by the Maven build.
+* `getting-started-1.0-SNAPSHOT-runner.jar`: Is an executable JAR file. Be aware that this file is not an uber-JAR file because the dependencies are copied into the `target/lib` directory.
+
+. If hot reload mode is running, press *CTRL+C* to stop the hot reload mode. If you do not do this, you will have a port conflict.
+. Enter the following command to run the application:
++
+[source]
+----
+java -jar target/getting-started-1.0-SNAPSHOT-runner.jar
+----
++
+NOTE: The `Class-Path` entry of the `MANIFEST.MF` file from the `runner` JAR file explicitly lists the JAR files from the `lib` directory. If you want to deploy your application from another location, you must copy the `runner` JAR file as well as the `lib` directory.
+
+:leveloffset!:
+
+:leveloffset: +1
+
+[id='con-quarkus-async_{context}']
+
+
+= {ProductLongName} asynchronous actions
+COMMENT: Needs clarifying.
+
+The `GreetingResourceTest` class can also use `CompletionStage` as the return type to handle asynchronous actions:
+
+[source,java]
+----
+@GET
+@Produces(MediaType.TEXT_PLAIN)
+public CompletionStage<String> hello() {
+    return CompletableFuture.supplyAsync(() -> {
+        return "hello";
+    });
+}
+----
+
+The asynchronous version of the code is available in the https://github.com/quarkusio/quarkus-quickstarts[quarkus-quickstarts] GitHub repository, in the `getting-started-async` directory.
+
+:leveloffset!:
+
+== Additional resources
+
+For more information about the Maven Surefire plugin, see the https://maven.apache.org/[Apache Maven Project] website.
+
+For information about the JUnit 5 testing framework, see the https://junit.org/junit5/[JUnit 5] website.
+
+For information about REST-assured, see the http://rest-assured.io[REST-assured] website.
+
+// Versioning info
+////
+Revision information template.
+Add this to the end of every document.
+////
+
+_Revised on {localdate} {localtime}_

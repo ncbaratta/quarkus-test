@@ -1,0 +1,44 @@
+// AsciiDoc settings
+:data-uri!:
+:doctype: book
+:experimental:
+:idprefix:
+:imagesdir: images
+:numbered:
+:sectanchors!:
+:sectnums:
+:sectlinks:
+:source-highlighter: highlightjs
+:toc: left
+:linkattrs:
+:toclevels: 3
+
+// Name placeholders
+:ProductLongName: Red Hat build of Quarkus
+:ProductName: Quarkus
+:ContextProduct: quarkus
+:ProductVersion: 1.3
+:ProductLongVersion: 1.3.2
+:MavenVersion: 3.6.2
+:JDKVersion: 11
+:QuarkusPluginVersion: 1.3.2.Final-redhat-00001
+:RHOSLong: Red Hat OpenShift Container Platform
+:RHOSVersion: 4.3
+:RHEL: Red Hat Enterprise Linux
+:RHELVersion: 8
+
+
+
+:URL_COMPONENT_FORMAT: html-single
+:URL_COMPONENT_PRODUCT: red_hat_build_of_quarkus
+:URL_BASE_QUARKUS: https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus/{ProductVersion}/{URL_COMPONENT_FORMAT}
+
+:GETTING_STARTED_QUARKUS: Getting started with {PRODUCTLONGNAME}
+:RELEASE_NOTES_QUARKUS: {PRODUCTLONGNAME} release notes
+:MAVEN_QUARKUS: Creating {PRODUCTNAME} applications with Apache Maven
+:OPENSHIFT_QUARKUS: Deploying {PRODUCTNAME} applications on {RHOSLong}
+
+:URL_RELEASE_NOTES: {URL_BASE_QUARKUS}/release_notes_for_{URL_COMPONENT_PRODUCT}_{ProductVersion}
+:URL_GETTING_STARTED_QUARKUS: {URL_BASE_QUARKUS}/getting_started_with_{URL_COMPONENT_PRODUCT}
+:URL_MAVEN_QUARKUS: {URL_BASE_QUARKUS}/creating_quarkus_applications_with_apache_maven
+:URL_OPENSHIFT_QUARKUS: {URL_BASE_QUARKUS}/deploying_quarkus_applications_on_red_hat_openshift_container_platform
